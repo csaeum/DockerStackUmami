@@ -75,6 +75,7 @@ docker compose logs -f umami
 Ouvrez votre domaine configuré (par exemple `https://analytics.example.com`) dans votre navigateur.
 
 **Identifiants par défaut :**
+
 - Nom d'utilisateur : `admin`
 - Mot de passe : `umami`
 
@@ -129,6 +130,7 @@ docker compose logs -f umami-backup
 Les sauvegardes sont automatiquement créées toutes les 6 heures et enregistrées dans le `BACKUPVOLUME` configuré.
 
 **Politique de conservation :**
+
 - Sauvegardes quotidiennes : 7 jours
 - Sauvegardes hebdomadaires : 4 semaines
 - Sauvegardes mensuelles : 6 mois

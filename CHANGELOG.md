@@ -8,6 +8,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [1.1.0] - 2025-12-29
 
 ### Hinzugefügt
+
 - Mehrsprachige Dokumentation (Deutsch, Englisch, Französisch)
 - GitHub Actions CI/CD Pipeline mit:
   - Docker Compose Validierung
@@ -19,20 +20,24 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Ausführliche Troubleshooting-Sektion in allen README-Versionen
 
 ### Geändert
+
 - Passwortgenerierung nutzt nun `openssl rand -hex` statt `-base64`
 - URL-sichere Passwörter ohne Sonderzeichen (+, /, =)
 - Verbesserte .gitignore mit .claude/ Ausschluss
 
 ### Behoben
+
 - "TypeError: Invalid URL" durch URL-unsichere Passwörter
 
 ### Dokumentation
+
 - Sponsor-Links und Unterstützungssektion hinzugefügt
 - Detaillierte Anleitung für Passwort-Problemlösung
 
 ## [1.0.0] - 2025-12-28
 
-### Hinzugefügt
+### Initiale Veröffentlichung
+
 - Initiale Version des Umami Docker Stacks
 - Docker Compose Konfiguration mit Umami, PostgreSQL und Backup-Service
 - Traefik Integration mit SSL-Zertifikaten via Let's Encrypt
@@ -47,6 +52,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - .gitignore für sichere Versionsverwaltung
 
 ### Sicherheit
+
 - Verwendung der offiziellen Umami und PostgreSQL Alpine Images
 - Sichere Passwort-Generierung mittels OpenSSL
 - APP_SECRET für sichere Session-Verwaltung
@@ -54,6 +60,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Moderne TLS-Konfiguration
 
 ### Infrastruktur
+
 - PostgreSQL 15 Alpine als Datenbank-Backend
 - Automatische Datenbank-Backups mit Aufbewahrungsrichtlinien
 - Bridge-Netzwerk für interne Container-Kommunikation
