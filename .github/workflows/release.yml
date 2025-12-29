@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create release archive
+        run: |
+          # Create archive using git archive to respect .gitattributes
+          git archive --format=zip --prefix=DockerStackUmami/ HEAD -o DockerStackUmami.zip
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            # Extract changelog section for this version
+            VERSION="${{ steps.get_version.outputs.VERSION }}"
+            CHANGELOG=$(awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | sed '$d' | tail -n +2)
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="See CHANGELOG.md for details."
+            fi
+          else
+            CHANGELOG="Release ${{ steps.get_version.outputs.VERSION }}"
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            # Umami Analytics Docker Stack v${{ steps.get_version.outputs.VERSION }}
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## Installation
+
+            1. Download and extract `DockerStackUmami.zip`
+            2. Copy `.env.example` to `.env` and configure
+            3. Run `docker compose up -d`
+
+            For detailed instructions, see the [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+
+            ---
+
+            **Made with ❤️ by WSC - Web SEO Consulting**
+          files: |
+            DockerStackUmami.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

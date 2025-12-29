@@ -1,0 +1,27 @@
+# Git Attributes - Export Configuration
+# Files listed here will be excluded from git archive (ZIP/TAR.GZ exports)
+
+# Development files
+.github/ export-ignore
+.claude/ export-ignore
+.idea/ export-ignore
+.vscode/ export-ignore
+
+# CI/CD Configuration
+.yamllint export-ignore
+.markdownlint.json export-ignore
+
+# Git files
+.gitignore export-ignore
+.gitattributes export-ignore
+
+# Documentation (keep only user-facing README)
+# Remove this line if you want to include all README files
+# README.en.md export-ignore
+# README.fr.md export-ignore
+
+# Test files (if any in future)
+tests/ export-ignore
+
+# Development volumes (should already be in .gitignore, but just in case)
+volumes/ export-ignore

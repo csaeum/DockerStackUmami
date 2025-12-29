@@ -1,0 +1,94 @@
+services:
+  # Umami Analytics Application
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: ${COMPOSE_PROJECT_NAME}-app
+    restart: unless-stopped
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@umami-db:5432/${DB_NAME}
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${APP_SECRET}
+      TZ: ${TIMEZONE}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/heartbeat || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - default
+      - ${PROXY_NETWORK}
+    labels:
+      # Traefik aktivieren
+      - traefik.enable=true
+
+      # HTTPS Router (Hauptrouter)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=${HOSTRULE}
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure-https
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsEncrypt
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.options=modern@file
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}.middlewares=security-headers@file,compression@file,rate-limit@file,geo-block@file
+
+      # Service Konfiguration
+      - traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.passHostHeader=true
+      - traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=3000
+
+      # HTTP zu HTTPS Redirect Router
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.rule=${HOSTRULE}
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=websecure-http
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=redirect-to-https@file
+
+  # PostgreSQL Datenbank
+  umami-db:
+    image: postgres:15-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: ${TIMEZONE}
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - default
+
+  # PostgreSQL Backup Service
+  umami-backup:
+    image: prodrigestivill/postgres-backup-local:15-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-backup
+    restart: unless-stopped
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: umami-db
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      SCHEDULE: "@every 6h"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+      HEALTHCHECK_PORT: 8080
+      TZ: ${TIMEZONE}
+    volumes:
+      - ${BACKUPVOLUME}:/backups
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
+  traefik_proxy_network:
+    external: true
+    name: ${PROXY_NETWORK}
